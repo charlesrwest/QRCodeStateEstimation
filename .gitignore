@@ -1,0 +1,15 @@
+*~
+CMakeFiles
+CMakeCache.txt
+cmake_install.cmake
+*.a
+*.so
+Makefile
+
+./CMakeFiles/*
+./src/CMakeFiles/*
+./src/library/CMakeFiles/*
+./src/example/CMakeFiles/*
+
+./lib/libQRCodeStateEstimation.so
+./bin/estimateLocationFromQRCode
