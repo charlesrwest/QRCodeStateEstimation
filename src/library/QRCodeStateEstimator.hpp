@@ -60,6 +60,32 @@ This function takes a grayscale frame of the appropriate size, scans for a QR co
 */
 bool estimateStateFromGrayscaleFrame(const cv::Mat &inputGrayscaleFrame, cv::Mat &inputCameraPoseBuffer, std::string &inputQRCodeIdentifierBuffer, double &inputQRCodeDimensionBuffer);
 
+/*
+This function takes a BGR frame of the appropriate size, scans for a QR codes with an embedded size (recognized decimal formats: ft, in, cm, mm, m), and stores the poses of the camera (OpenCV format) relative to the different coordinate systems of the QR tags in the provided buffer.
+@param inputBGRFrame: The frame to process (should be same size as calibration)
+@param inputCameraPosesBuffer: The buffer to place the 4x4 camera pose matrices in
+@param inputQRCodeIdentifiersBuffer: A buffer to place the text left from each QR code after the dimension information has been removed
+@param inputQRCodeDimensionsBuffer: A buffer to place size of each QR code in meters 
+@return: true if it was able to scan a QR code and estimate its pose relative to it and false otherwise
+
+@exceptions: This function can throw exceptions
+*/
+bool estimateOneOrMoreStatesFromBGRFrame(const cv::Mat &inputBGRFrame, std::vector<cv::Mat> &inputCameraPosesBuffer, std::vector<std::string> &inputQRCodeIdentifiersBuffer, std::vector<double> &inputQRCodeDimensionsBuffer);
+
+/*
+This function takes a grayscale frame of the appropriate size, scans for any QR codes with an embedded sizes (recognized decimal formats: ft, in, cm, mm, m), and stores the poses of the camera (OpenCV format) relative to the different coordinate systems of the QR tags in the provided buffers.
+@param inputGrayscaleFrame: The frame to process (should be same size as calibration)
+@param inputCameraPosesBuffer: The buffer to place the 4x4 camera pose matrices in
+@param inputQRCodeIdentifiersBuffer: A buffer to place the text left from each QR code after the dimension information has been removed
+@param inputQRCodeDimensionsBuffer: A buffer to place size of each QR code in meters 
+@return: true if it was able to scan a QR code and estimate its pose relative to it and false otherwise
+
+@exceptions: This function can throw exceptions
+*/
+bool estimateOneOrMoreStatesFromGrayscaleFrame(const cv::Mat &inputGrayscaleFrame, std::vector<cv::Mat> &inputCameraPosesBuffer, std::vector<std::string> &inputQRCodeIdentifiersBuffer, std::vector<double> &inputQRCodeDimensionsBuffer);
+
+
+
 int expectedCameraImageWidth;
 int expectedCameraImageHeight;
 cv::Mat_<double> cameraMatrix;  //3x3 matrix

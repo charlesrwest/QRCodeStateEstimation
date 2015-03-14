@@ -99,6 +99,61 @@ This function takes a grayscale frame of the appropriate size, scans for a QR co
 */
 bool QRCodeStateEstimator::estimateStateFromGrayscaleFrame(const cv::Mat &inputGrayscaleFrame, cv::Mat &inputCameraPoseBuffer, std::string &inputQRCodeIdentifierBuffer, double &inputQRCodeDimensionBuffer)
 {
+std::vector<cv::Mat> cameraPosesBuffer;
+std::vector<std::string> QRCodeIdentifiersBuffer;
+std::vector<double> QRCodeDimensionBuffer;
+bool returnValue;
+
+returnValue = estimateOneOrMoreStatesFromGrayscaleFrame(inputGrayscaleFrame, cameraPosesBuffer, QRCodeIdentifiersBuffer, QRCodeDimensionBuffer);
+
+if(cameraPosesBuffer.size() > 0)
+{
+inputCameraPoseBuffer = cameraPosesBuffer[0];
+inputQRCodeIdentifierBuffer = QRCodeIdentifiersBuffer[0];
+inputQRCodeDimensionBuffer = QRCodeDimensionBuffer[0];
+}
+
+return returnValue;
+}
+
+/*
+This function takes a BGR frame of the appropriate size, scans for a QR codes with an embedded size (recognized decimal formats: ft, in, cm, mm, m), and stores the poses of the camera (OpenCV format) relative to the different coordinate systems of the QR tags in the provided buffer.
+@param inputBGRFrame: The frame to process (should be same size as calibration)
+@param inputCameraPosesBuffer: The buffer to place the 4x4 camera pose matrices in
+@param inputQRCodeIdentifiersBuffer: A buffer to place the text left from each QR code after the dimension information has been removed
+@param inputQRCodeDimensionsBuffer: A buffer to place size of each QR code in meters 
+@return: true if it was able to scan a QR code and estimate its pose relative to it and false otherwise
+
+@exceptions: This function can throw exceptions
+*/
+bool QRCodeStateEstimator::estimateOneOrMoreStatesFromBGRFrame(const cv::Mat &inputBGRFrame, std::vector<cv::Mat> &inputCameraPosesBuffer, std::vector<std::string> &inputQRCodeIdentifiersBuffer, std::vector<double> &inputQRCodeDimensionsBuffer)
+{
+if(inputBGRFrame.channels() != 3)
+{
+throw SOMException(std::string("Given frame is not BGR\n"), INVALID_FUNCTION_INPUT, __FILE__, __LINE__);
+}
+
+//Convert the frame to grayscale
+cvtColor(inputBGRFrame, frameBuffer, CV_BGR2GRAY);
+
+//Get the pose using the grayscale version
+SOM_TRY
+return estimateOneOrMoreStatesFromGrayscaleFrame(frameBuffer, inputCameraPosesBuffer, inputQRCodeIdentifiersBuffer, inputQRCodeDimensionsBuffer);
+SOM_CATCH("Error calculating pose from image\n")
+}
+
+/*
+This function takes a grayscale frame of the appropriate size, scans for any QR codes with an embedded sizes (recognized decimal formats: ft, in, cm, mm, m), and stores the poses of the camera (OpenCV format) relative to the different coordinate systems of the QR tags in the provided buffers.
+@param inputGrayscaleFrame: The frame to process (should be same size as calibration)
+@param inputCameraPosesBuffer: The buffer to place the 4x4 camera pose matrices in
+@param inputQRCodeIdentifiersBuffer: A buffer to place the text left from each QR code after the dimension information has been removed
+@param inputQRCodeDimensionsBuffer: A buffer to place size of each QR code in meters 
+@return: true if it was able to scan a QR code and estimate its pose relative to it and false otherwise
+
+@exceptions: This function can throw exceptions
+*/
+bool QRCodeStateEstimator::estimateOneOrMoreStatesFromGrayscaleFrame(const cv::Mat &inputGrayscaleFrame, std::vector<cv::Mat> &inputCameraPosesBuffer, std::vector<std::string> &inputQRCodeIdentifiersBuffer, std::vector<double> &inputQRCodeDimensionsBuffer)
+{
 if(inputGrayscaleFrame.channels() != 1)
 {
 throw SOMException(std::string("Given frame is not grayscale\n"), INVALID_FUNCTION_INPUT, __FILE__, __LINE__);
@@ -121,6 +176,10 @@ printf("TestScanner error\n");
 throw SOMException(std::string("QR code scanner returned with error\n"), ZBAR_ERROR, __FILE__, __LINE__);
 }
 
+//Clear the buffers to store everything in
+inputCameraPosesBuffer.clear();
+inputQRCodeIdentifiersBuffer.clear();
+inputQRCodeDimensionsBuffer.clear();
 
 for (zbar::Image::SymbolIterator symbol = zbarFrame.symbol_begin();  symbol != zbarFrame.symbol_end();  ++symbol) 
 {
@@ -184,35 +243,63 @@ viewMatrix.at<double>(row, 3) = translationVector.at<double>(row, 0);
 viewMatrix.at<double>(3,3) = 1.0;
 
 
-//Invert matrix to get position and orientation of camera relative to tag, storing it in given variable
-invert(viewMatrix, inputCameraPoseBuffer);
-inputQRCodeIdentifierBuffer = QRCodeIdentifierString;
-inputQRCodeDimensionBuffer = QRCodeDimensionInMeters;
+//Invert matrix to get position and orientation of camera relative to tag, storing it in a buffer
+cv::Mat cameraPoseBuffer;
+invert(viewMatrix, cameraPoseBuffer);
+
+//Store in buffer vectors
+inputCameraPosesBuffer.push_back(cameraPoseBuffer);
+inputQRCodeIdentifiersBuffer.push_back(QRCodeIdentifierString);
+inputQRCodeDimensionsBuffer.push_back(QRCodeDimensionInMeters);
+
+} //End symbol for loop
 
 if(showResultsInWindow)
 {
+//Draw base image
 cv::Mat bufferFrame = inputGrayscaleFrame;
+
 // Draw location of the symbols found
+for (zbar::Image::SymbolIterator symbol = zbarFrame.symbol_begin();  symbol != zbarFrame.symbol_end();  ++symbol) 
+{
+if(symbol->get_type() != zbar::ZBAR_QRCODE || symbol->get_location_size() != 4)
+{
+continue; //Skip if it isn't a QR code or its outline is described by more than 4 vertices
+} 
+
+double QRCodeDimensionInMeters;
+std::string QRCodeIdentifierString;
+if(extractQRCodeDimensionFromString(symbol->get_data(), QRCodeDimensionInMeters, QRCodeIdentifierString) != true)
+{
+continue; //Couldn't read dimension
+}
+
 line(bufferFrame, cv::Point(symbol->get_location_x(0), symbol->get_location_y(0)), cv::Point(symbol->get_location_x(1), symbol->get_location_y(1)), cv::Scalar(0, 0, 0), 2, 8, 0); //Red 0->1
 line(bufferFrame, cv::Point(symbol->get_location_x(1), symbol->get_location_y(1)), cv::Point(symbol->get_location_x(2), symbol->get_location_y(2)), cv::Scalar(85, 85, 85), 2, 8, 0); //Green 1 -> 2
 line(bufferFrame, cv::Point(symbol->get_location_x(2), symbol->get_location_y(2)), cv::Point(symbol->get_location_x(3), symbol->get_location_y(3)), cv::Scalar(150, 150, 150), 2, 8, 0); //Blue 2 -> 3
 line(bufferFrame, cv::Point(symbol->get_location_x(3), symbol->get_location_y(3)), cv::Point(symbol->get_location_x(0), symbol->get_location_y(0)), cv::Scalar(255, 255, 255), 2, 8, 0); //Yellow  3 -> 0
-
+}
 
 imshow(QRCodeStateEstimatorWindowTitle, bufferFrame);
 cv::waitKey(30);
 }
 
+
 //Make sure it updates every frame, even if it found the qr code in the last frame
 zbarScanner.recycle_image(zbarFrame);
 
+if(inputCameraPosesBuffer.size() > 0)
+{
 return true;
-} //End symbol for loop
+}
 
  
 //Didn't find/process any suitable QR codes, so return false
 return false;
 }
+
+
+
 
 /*
 This function takes a string in the format "dimensionIdentifier" (for example, "12.0in-FKDJL") and stores the dimension from the string in meters and the remainder.  In the example case, it would store 0.3048 and "FKDJL".  It supports the following extensions and is case insensitive: "m-", "cm-", "mm-", "ft-", "in-".
