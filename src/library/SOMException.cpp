@@ -10,14 +10,14 @@ This function initializes the exception object with the required information.
 SOMException::SOMException(const std::string &inputErrorMessage, exceptionClass inputExceptionClass, const char *inputSourceFileName, int inputSourceLineNumber) : errorMessage(inputErrorMessage)
 {
 
-exceptionType = inputExceptionClass;
+  exceptionType = inputExceptionClass;
 
-if(inputSourceFileName != NULL)
-{
-sourceFileName = std::string(inputSourceFileName);
-}
+  if(inputSourceFileName != NULL)
+  {
+    sourceFileName = std::string(inputSourceFileName);
+  }
 
-sourceLineNumber = std::to_string(inputSourceLineNumber);
+  sourceLineNumber = std::to_string(inputSourceLineNumber);
 
 }
 
@@ -31,14 +31,14 @@ This function initializes the exception object with an error message that is the
 */
 SOMException::SOMException(const std::string &inputErrorMessage, exceptionClass inputExceptionClass, const std::exception &inputException, const char *inputSourceFileName, int inputSourceLineNumber) : errorMessage(inputErrorMessage + inputException.what())
 {
-exceptionType = inputExceptionClass;
+  exceptionType = inputExceptionClass;
 
-if(inputSourceFileName != NULL)
-{
-sourceFileName = std::string(inputSourceFileName);
-}
+  if(inputSourceFileName != NULL)
+  {
+    sourceFileName = std::string(inputSourceFileName);
+  }
 
-sourceLineNumber = std::to_string(inputSourceLineNumber);
+  sourceLineNumber = std::to_string(inputSourceLineNumber);
 }
 
 /*
@@ -50,14 +50,14 @@ This function initializes the exception object with an error message that is the
 */
 SOMException::SOMException(const std::string &inputErrorMessage, const std::exception &inputException, const char *inputSourceFileName, int inputSourceLineNumber) : errorMessage(inputErrorMessage + inputException.what())
 {
-exceptionType = UNKNOWN;
+  exceptionType = UNKNOWN;
 
-if(inputSourceFileName != NULL)
-{
-sourceFileName = std::string(inputSourceFileName);
-}
+  if(inputSourceFileName != NULL)
+  {
+    sourceFileName = std::string(inputSourceFileName);
+  }
 
-sourceLineNumber = std::to_string(inputSourceLineNumber);
+  sourceLineNumber = std::to_string(inputSourceLineNumber);
 }
 
 /*
@@ -69,14 +69,14 @@ This function initializes the exception object with an error message that is the
 */
 SOMException::SOMException(const std::string &inputErrorMessage, const SOMException &inputSOMException, const char *inputSourceFileName, int inputSourceLineNumber) : errorMessage(inputErrorMessage + inputSOMException.toString())
 {
-exceptionType = inputSOMException.exceptionType;
+  exceptionType = inputSOMException.exceptionType;
 
-if(inputSourceFileName != NULL)
-{
-sourceFileName = std::string(inputSourceFileName);
-}
+  if(inputSourceFileName != NULL)
+  {
+    sourceFileName = std::string(inputSourceFileName);
+  }
 
-sourceLineNumber = std::to_string(inputSourceLineNumber);
+  sourceLineNumber = std::to_string(inputSourceLineNumber);
 }
 
 /*
@@ -89,14 +89,14 @@ This function initializes the exception object with an error message that is the
 */
 SOMException::SOMException(const std::string &inputErrorMessage, exceptionClass inputExceptionClass, const SOMException &inputSOMException, const char *inputSourceFileName, int inputSourceLineNumber) : errorMessage(inputErrorMessage + inputSOMException.toString())
 {
-exceptionType = inputExceptionClass;
+  exceptionType = inputExceptionClass;
 
-if(inputSourceFileName != NULL)
-{
-sourceFileName = std::string(inputSourceFileName);
-}
+  if(inputSourceFileName != NULL)
+  {
+    sourceFileName = std::string(inputSourceFileName);
+  }
 
-sourceLineNumber = std::to_string(inputSourceLineNumber);
+  sourceLineNumber = std::to_string(inputSourceLineNumber);
 }
 
 
@@ -107,7 +107,10 @@ This function returns a string that is a summary of the error that caused the ex
 */
 std::string SOMException::toString() const
 {
-return "Error of type " + exceptionClassToString(exceptionType) + " occurred in file " + sourceFileName + " at line " + sourceLineNumber + ": " + errorMessage;
+  return "Error of type " + exceptionClassToString(exceptionType) 
+        + " occurred in file " 
+        + sourceFileName + " at line " 
+        + sourceLineNumber + ": " + errorMessage;
 }
 
 /*
@@ -116,7 +119,7 @@ This function overrides the virtual function that was defined in std::exception 
 */
 const char *SOMException::what() const throw()
 {
-return toString().c_str();
+  return toString().c_str();
 }
 
 
@@ -127,59 +130,59 @@ This function converts the exceptionClass enum into a string
 */
 std::string exceptionClassToString(exceptionClass inputExceptionType)
 {
-switch(inputExceptionType)
-{
-case ZMQ_ERROR:
-return std::string("ZMQ_ERROR");
-break;
+  switch(inputExceptionType)
+  {
+    case ZMQ_ERROR:
+      return std::string("ZMQ_ERROR");
+      break;
 
-case SQLITE3_ERROR:
-return std::string("ZMQ_ERROR");
-break;
+    case SQLITE3_ERROR:
+      return std::string("ZMQ_ERROR");
+      break;
 
-case FILE_SYSTEM_ERROR:
-return std::string("FILE_SYSTEM_ERROR");
-break;
+    case FILE_SYSTEM_ERROR:
+      return std::string("FILE_SYSTEM_ERROR");
+      break;
 
-case AN_ASSUMPTION_WAS_VIOLATED_ERROR:
-return std::string("AN_ASSUMPTION_WAS_VIOLATED_ERROR");
-break;
+    case AN_ASSUMPTION_WAS_VIOLATED_ERROR:
+      return std::string("AN_ASSUMPTION_WAS_VIOLATED_ERROR");
+      break;
 
-case SINGLETON_ALREADY_EXISTS:
-return std::string("SINGLETON_ALREADY_EXISTS");
-break;
+    case SINGLETON_ALREADY_EXISTS:
+      return std::string("SINGLETON_ALREADY_EXISTS");
+      break;
 
-case SINGLETON_CREATION_FAILED:
-return std::string("SINGLETON_CREATION_FAILED");
-break;
+    case SINGLETON_CREATION_FAILED:
+      return std::string("SINGLETON_CREATION_FAILED");
+      break;
 
-case FORK_ERROR:
-return std::string("FORK_ERROR");
-break;
+    case FORK_ERROR:
+      return std::string("FORK_ERROR");
+      break;
 
-case SYSTEM_ERROR:
-return std::string("SYSTEM_ERROR");
-break;
+    case SYSTEM_ERROR:
+      return std::string("SYSTEM_ERROR");
+      break;
 
-case INVALID_FUNCTION_INPUT:
-return std::string("INVALID_FUNCTION_INPUT");
-break;
+    case INVALID_FUNCTION_INPUT:
+      return std::string("INVALID_FUNCTION_INPUT");
+      break;
 
-case INCORRECT_SERVER_RESPONSE:
-return std::string("INCORRECT_SERVER_RESPONSE");
-break;
+    case INCORRECT_SERVER_RESPONSE:
+      return std::string("INCORRECT_SERVER_RESPONSE");
+      break;
 
-case SERVER_REQUEST_FAILED:
-return std::string("SERVER_REQUEST_FAILED");
-break;
+    case SERVER_REQUEST_FAILED:
+      return std::string("SERVER_REQUEST_FAILED");
+      break;
 
-case UNKNOWN:
-return std::string("UNKNOWN");
-break;
+    case UNKNOWN:
+      return std::string("UNKNOWN");
+      break;
 
-default:
-return "";
-}
+    default:
+      return "";
+  }
 }
 
 
