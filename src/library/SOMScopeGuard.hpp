@@ -14,31 +14,31 @@ As the given function is called from a destructor, it is not allowed to throw an
 */
 class SOMScopeGuard
 {
-public:
+  public:
 
-/*
-This function constructs the scope guard and sets the function for it to call when it is deleted or goes out of scope.  The function argument must not throw exceptions.
-@param inputFunction: The function to call when the object goes out of scope
-*/
-SOMScopeGuard(std::function<void()> inputFunction);
+  /*
+  This function constructs the scope guard and sets the function for it to call when it is deleted or goes out of scope.  The function argument must not throw exceptions.
+  @param inputFunction: The function to call when the object goes out of scope
+  */
+  SOMScopeGuard(std::function<void()> inputFunction);
 
-/*
-This function tells the scope guard that it should not call the function it was given when it goes out of scope.
-*/
-void dismiss();
+  /*
+  This function tells the scope guard that it should not call the function it was given when it goes out of scope.
+  */
+  void dismiss();
 
-/*
-This destructor cleans up the object and calls the function that it was given on its creation.
-*/
-~SOMScopeGuard() noexcept;
+  /*
+  This destructor cleans up the object and calls the function that it was given on its creation.
+  */
+  ~SOMScopeGuard() noexcept;
 
 
-private:
-SOMScopeGuard() = delete; //Disable creation of the object without a function argument
-SOMScopeGuard(const SOMScopeGuard &inputSOMScopeGuard) = delete; //Disable copying of the object
+  private:
+  SOMScopeGuard() = delete; //Disable creation of the object without a function argument
+  SOMScopeGuard(const SOMScopeGuard &inputSOMScopeGuard) = delete; //Disable copying of the object
 
-bool scopeGuardHasBeenDismissed;
-std::function<void()> functionToCall;
+  bool scopeGuardHasBeenDismissed;
+  std::function<void()> functionToCall;
 };
 
 
